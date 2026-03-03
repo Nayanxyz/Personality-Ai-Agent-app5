@@ -1,8 +1,11 @@
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
-
+from langchain_google_genai import ChatGoogleGenerativeAI                                   #these are langchain classes
+from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
+from langchain_core.messages import HumanMessage , AIMessage
+from langchain_core.output_parsers import StrOutputParser
 
 import os
+
 
 load_dotenv()
 
@@ -26,12 +29,22 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.3
 )
 
+prompt = ChatPromptTemplate([
+    ("system", system_prompt),
+    (MessagesPlaceholder(variable_name="history")),                               #like a storage for storing previous chat data
+    ("user", "{input}")]
+)
+
+chain = prompt | llm | StrOutputParser()                                          #prompt 's output is llm 's input
+
 print("Hello, I am Osho , what do you wish to ask me?")
 
-history = []                                                        #This is python way of adding history so that character knows
-while True:                                                         #previous chat and answer accordingly
+history = []                                                                      #This is the langchain way
+
+while True:
     user_input = input("You : ")
-    history.append({"role": "user", "content": user_input})
-    response = llm.invoke([{"role": "system", "content": system_prompt}] + history)
-    print(f"Osho : {response.content}")
-    history.append({"role": "assistant", "content": "response.content"})
+    response = chain.invoke({"input": user_input, "history": history})
+    print(f"Osho : {response}")
+    history.append(HumanMessage(content=user_input))
+    history.append(AIMessage(content=response))
+
