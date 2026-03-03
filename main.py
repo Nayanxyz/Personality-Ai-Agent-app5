@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage , AIMessage
 from langchain_core.output_parsers import StrOutputParser
 
 import os
-
+import gradio as gr                                                                        #library for theme buttons and chatboxes
 
 load_dotenv()
 
@@ -39,12 +39,37 @@ chain = prompt | llm | StrOutputParser()                                        
 
 print("Hello, I am Osho , what do you wish to ask me?")
 
-history = []                                                                      #This is the langchain way
+def chat(user_input, hist):
 
-while True:
-    user_input = input("You : ")
-    response = chain.invoke({"input": user_input, "history": history})
-    print(f"Osho : {response}")
-    history.append(HumanMessage(content=user_input))
-    history.append(AIMessage(content=response))
+    langchain_history=[]
+    for item in hist:
+        if item["role"] == "user":
+            langchain_history.append(HumanMessage(content=item["content"]))
+        elif item["role"] == "assistant":
+            langchain_history.append(AIMessage(content=item["content"]))
 
+    response = chain.invoke({"input": user_input, "history": langchain_history})
+
+    return "", hist + [{"role": "user", "content": user_input},
+                       {"role": "assistant", "content": response}]
+
+
+
+page = gr.Blocks(title="Chat with Osho")                                                   #Blocks method for title
+
+with page:
+    gr.Markdown(""" 
+    # Chat with Osho
+    welcome to the private chat with Osho. Let your questions flow and don't hold back
+    """)
+
+    chatbot = gr.Chatbot()
+
+    msg = gr.Textbox()
+
+    msg.submit(chat, [msg, chatbot],[msg, chatbot])                  #submit method takes two args
+
+    clear = gr.Button("Clear Chat")
+
+
+page.launch(theme=gr.themes.Soft(),share=True)
