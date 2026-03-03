@@ -54,6 +54,8 @@ def chat(user_input, hist):
                        {"role": "assistant", "content": response}]
 
 
+def clear_chat():
+    return "", []                                                              #"" for clearing textbox,[] for clearing chatbot area
 
 page = gr.Blocks(title="Chat with Osho")                                                   #Blocks method for title
 
@@ -63,13 +65,14 @@ with page:
     welcome to the private chat with Osho. Let your questions flow and don't hold back
     """)
 
-    chatbot = gr.Chatbot()
+    chatbot = gr.Chatbot(show_label=False)
 
-    msg = gr.Textbox()
+    msg = gr.Textbox(show_label=False, placeholder="ask anything...")
 
     msg.submit(chat, [msg, chatbot],[msg, chatbot])                  #submit method takes two args
 
-    clear = gr.Button("Clear Chat")
+    clear = gr.Button("Clear Chat", variant="secondary")
+    clear.click(clear_chat, outputs=[msg, chatbot])                              #gradio knows which widget to update/clear that is msg and chatbot
 
 
 page.launch(theme=gr.themes.Soft(),share=True)
